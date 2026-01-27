@@ -15,8 +15,9 @@
     <div x-data="standingsApp()" x-init="fetchData()" class="max-w-md mx-auto px-4 py-8">
         
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-extrabold text-blue-500 tracking-tight">D1FOUR</h1>
-            <p class="text-gray-400 mt-2">Local Group Competition Standings</p>
+            <img src="assets/logo_d1four.jpg" alt="D1FOUR Logo" class="block h-24 w-auto mx-auto object-contain">
+            <p class="text-gray-400 mt-2">Competition Standings</p>
+            <p class="text-xs text-gray-500 mt-2 font-mono">Data updated as of <span x-text="lastUpdated"></span></p>
         </header>
 
         <div class="sticky top-4 z-10 mb-6">
@@ -35,6 +36,14 @@
         </template>
 
         <div x-show="!loading" x-cloak class="space-y-3">
+            <div class="flex items-center justify-between px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 text-center">Rank</div>
+                    <div>Name / Team</div>
+                </div>
+                <div class="text-right">Points</div>
+            </div>
+
             <template x-for="player in filteredStandings" :key="player.name">
                 <div class="bg-gray-800 border border-gray-700 rounded-xl p-4 flex items-center justify-between shadow-sm transition transform active:scale-95">
                     <div class="flex items-center space-x-4">
@@ -64,9 +73,10 @@
             return {
                 search: '',
                 loading: true,
+                lastUpdated: 'January 27, 2026',
                 allData: [],
                 // Replace with your ID: 1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o
-                sheetUrl: 'https://docs.google.com/spreadsheets/d/1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o/gviz/tq?tqx=out:json',
+                sheetUrl: 'https://docs.google.com/spreadsheets/d/1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o/gviz/tq?tqx=out:json&gid=1301055614',
                 
                 async fetchData() {
                     try {
@@ -80,7 +90,7 @@
                             team: row.c[0]?.v || 'N/A',
                             name: row.c[1]?.v || 'Unknown',
                             total: row.c[2]?.v || 0, // Using Column 13 (M) for Total
-                            rank: row.c[3]?.v || '-'  // Using Column 14 (N) for Rank
+                            rank: row.c[3]?.v || '-'  // Using Column 4 (D) for Rank
                         }));
                     } catch (error) {
                         console.error('Error fetching data:', error);
