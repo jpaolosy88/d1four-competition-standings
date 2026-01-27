@@ -79,7 +79,7 @@
                 // Configuration
                 sheetId: '1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o',
                 dataGid: '1301055614',      // GID for the standings data
-                metaGid: '1804576681', // PASTE YOUR NEW TAB GID HERE
+                metaGid: '1804576681',      // GID for the 'Updates' tab
                 
                 async fetchData() {
                     try {
@@ -98,11 +98,11 @@
                         const dataJson = JSON.parse(dataText.substr(47).slice(0, -2));
                         
                         this.allData = dataJson.table.rows.map(row => ({
-                            team: row.c[0]?.v || 'N/A',
-                            name: row.c[1]?.v || 'Unknown',
-                            total: row.c[2]?.v || 0, // Using Column 13 (M) for Total
-                            rank: row.c[3]?.v || '-'  // Using Column 4 (D) for Rank
-                        }));
+                            rank: row.c[0]?.v || '-',               // Column A: Rank
+                            team: String(row.c[1]?.v || 'N/A'),     // Column B: Team
+                            name: String(row.c[2]?.v || 'Unknown'), // Column C: Name
+                            total: row.c[3]?.v || 0,                // Column D: Points
+                        })).filter(item => item.rank !== 'Rank');   // Filter out header row
 
                         // 4. Process Last Updated Date (from the second sheet)
                         const metaText = await metaRes.text();
