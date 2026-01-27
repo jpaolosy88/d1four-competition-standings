@@ -73,25 +73,49 @@
             return {
                 search: '',
                 loading: true,
-                lastUpdated: 'January 27, 2026',
+                lastUpdated: 'Loading...',
                 allData: [],
-                // Replace with your ID: 1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o
-                sheetUrl: 'https://docs.google.com/spreadsheets/d/1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o/gviz/tq?tqx=out:json&gid=1301055614',
+                
+                // Configuration
+                sheetId: '1lqy6oWOd-q3aGW63MNB-p6whPp7tD_WZxbGMotgM20o',
+                dataGid: '1301055614',      // GID for the standings data
+                metaGid: '1804576681', // PASTE YOUR NEW TAB GID HERE
                 
                 async fetchData() {
                     try {
-                        const response = await fetch(this.sheetUrl);
-                        const text = await response.text();
-                        // Clean Google's JSON wrapper
-                        const json = JSON.parse(text.substr(47).slice(0, -2));
-                        const rows = json.table.rows;
+                        // 1. Construct URLs
+                        const dataUrl = `https://docs.google.com/spreadsheets/d/${this.sheetId}/gviz/tq?tqx=out:json&gid=${this.dataGid}`;
+                        const metaUrl = `https://docs.google.com/spreadsheets/d/${this.sheetId}/gviz/tq?tqx=out:json&gid=${this.metaGid}&range=B1`;
 
-                        this.allData = rows.map(row => ({
+                        // 2. Fetch both requests in parallel
+                        const [dataRes, metaRes] = await Promise.all([
+                            fetch(dataUrl),
+                            fetch(metaUrl)
+                        ]);
+
+                        // 3. Process Standings Data
+                        const dataText = await dataRes.text();
+                        const dataJson = JSON.parse(dataText.substr(47).slice(0, -2));
+                        
+                        this.allData = dataJson.table.rows.map(row => ({
                             team: row.c[0]?.v || 'N/A',
                             name: row.c[1]?.v || 'Unknown',
                             total: row.c[2]?.v || 0, // Using Column 13 (M) for Total
                             rank: row.c[3]?.v || '-'  // Using Column 4 (D) for Rank
                         }));
+
+                        // 4. Process Last Updated Date (from the second sheet)
+                        const metaText = await metaRes.text();
+                        const metaJson = JSON.parse(metaText.substr(47).slice(0, -2));
+                        if (metaJson.table.rows.length > 0 && metaJson.table.rows[0].c[0]) {
+                            const val = metaJson.table.rows[0].c[0]?.v;
+                            const dateMatch = typeof val === 'string' ? val.match(/Date\((\d+),(\d+),(\d+)/) : null;
+                            if (dateMatch) {
+                                this.lastUpdated = new Date(dateMatch[1], dateMatch[2], dateMatch[3]).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                            } else {
+                                this.lastUpdated = metaJson.table.rows[0].c[0]?.f || val || 'Unknown';
+                            }
+                        }
                     } catch (error) {
                         console.error('Error fetching data:', error);
                     } finally {
