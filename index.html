@@ -79,8 +79,8 @@
                         this.allData = rows.map(row => ({
                             team: row.c[0]?.v || 'N/A',
                             name: row.c[1]?.v || 'Unknown',
-                            total: row.c[12]?.v || 0, // Using Column 13 (M) for Total
-                            rank: row.c[13]?.v || '-'  // Using Column 14 (N) for Rank
+                            total: row.c[2]?.v || 0, // Using Column 13 (M) for Total
+                            rank: row.c[3]?.v || '-'  // Using Column 14 (N) for Rank
                         }));
                     } catch (error) {
                         console.error('Error fetching data:', error);
